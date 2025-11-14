@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Página inicial</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1 id="IntroductionText">Olá, seja bem vindo!</h1>
+    <p>Escreva abaixo o que deseja anotar</p>
+    <input type="text" id="tarefaInput" placeholder="Digite sua anotação (com no mínimo 5 caracteres)">
+    <input type="file" id="imagemInput" accept="image/png">
+    
+    <button id="adicionarBtn">Adicionar</button>
+    <div id="mensagem" class="mensagem"></div>
+
+    <ul id="lista"></ul>
+  </div>
+  <script>
+    const input = document.getElementById('tarefaInput');
+    const imagemInput = document.getElementById('imagemInput');
+    const lista = document.getElementById('lista');
+    const mensagem = document.getElementById('mensagem');
+    const botao = document.getElementById('adicionarBtn');
+
+    function mostrarMensagem(texto, tipo) {
+      mensagem.textContent = texto;
+      mensagem.className = 'mensagem ' + (tipo === 'sucesso' ? 'sucesso' : 'erro');
+      setTimeout(() => mensagem.textContent = '', 2000);
+    }
+
+    botao.addEventListener('click', () => {
+      const texto = input.value.trim();
+      if (texto.length < 5) {
+        mostrarMensagem('A tarefa deve ter no mínimo 5 caracteres.', 'erro');
+        return;
+      }
+      const li = document.createElement('li');
+      li.classList.add('baixa'); // prioridade inicial
+      const span = document.createElement('span');
+      span.textContent = texto;
+      li.appendChild(span);
+
+      const botoes = document.createElement('div');
+      botoes.classList.add('botoes');
+
+      const btnEditar = document.createElement('button');
+      btnEditar.textContent = 'Editar';
+      btnEditar.onclick = () => editarTarefa(li, span);
+      botoes.appendChild(btnEditar);
+
+      const btnExcluir = document.createElement('button');
+      btnExcluir.textContent = 'Excluir';
+      btnExcluir.onclick = () => li.remove();
+      botoes.appendChild(btnExcluir);
+
+      const btnRemoverImg = document.createElement('button');
+      btnRemoverImg.textContent = 'Remover Img';
+      btnRemoverImg.onclick = () => {
+        const img = li.querySelector('img');
+        if (img) img.remove();
+      }
+      botoes.appendChild(btnRemoverImg);
+
+      li.appendChild(botoes);
+
+      // Adicionar imagem se existir
+      const arquivo = imagemInput.files[0];
+      if (arquivo) {
+        const leitor = new FileReader();
+        leitor.onload = function(e) {
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          li.appendChild(img);
+        }
+        leitor.readAsDataURL(arquivo);
+      }
+
+      // Evento para arrastar à direita (mudança de prioridade)
+      let posInicialX = 0;
+      li.addEventListener('mousedown', e => posInicialX = e.clientX);
+      li.addEventListener('mouseup', e => {
+        const deslocamento = e.clientX - posInicialX;
+        if (deslocamento > 100) {
+          mudarPrioridade(li);
+        }
+      });
+
+      lista.appendChild(li);
+      input.value = '';
+      imagemInput.value = '';
+      mostrarMensagem('Tarefa adicionada com sucesso!', 'sucesso');
+    });
+
+    function editarTarefa(li, span) {
+      const novoTexto = prompt('Editar tarefa:', span.textContent);
+      if (novoTexto && novoTexto.trim().length >= 5) {
+        span.textContent = novoTexto.trim();
+        mostrarMensagem('Tarefa editada com sucesso!', 'sucesso');
+      } else {
+        mostrarMensagem('Texto inválido.', 'erro');
+      }
+    }
+
+    function mudarPrioridade(li) {
+      if (li.classList.contains('baixa')) {
+        li.className = 'media';
+      } else if (li.classList.contains('media')) {
+        li.className = 'alta';
+      } else {
+        li.className = 'baixa';
+      }
+    }
+  </script>
+
+</body>
+</html>
